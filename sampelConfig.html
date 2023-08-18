@@ -1,0 +1,154 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html xmlns:eibus="xmlns:eibus" onapplicationready="initialize()">
+
+<head>
+    <script src="/cordys/wcp/application.js"></script>
+    <style>
+        input {
+            font-size: 12;
+            font-family: verdana;
+        }
+
+        label {
+            font-size: 12;
+            font-family: verdana;
+        }
+
+        eibus:\select {
+            font-size: 11;
+            font-family: verdana;
+        }
+
+        .PASSWORD {
+            behavior: url('/cordys/wcp/admin/behavior/base64Encoder.htc')
+        }
+    </style>
+    <style>
+        body {
+            margin-top: 20px !important;
+            margin-left: 20px !important;
+            /*border-bottom:'0.1mm solid darkgray'; */
+        }
+    </style>
+</head>
+<script src="/cordys/wcp/admin/behavior/applicationconnector.js"></script>
+
+<script language="JScript">
+    /**
+     * Holds the namespace for the configuration XML.
+     */
+     var namespace = "http://schemas.poc.com/kafkaconnector/1.0/configuration";
+     var connectorName = "KafkaConnector";
+
+    /**
+     * This method creates the configuration XML based on the given inputs.
+     *
+     * @param configurationNode The parent configuration node.
+     */
+    function createConnectorConfiguration(configurationNode) {
+        configXmlDocument = configurationNode.ownerDocument;
+        configurationNode.setAttribute("implementation", "com.applicationconnector.kafkaconnector.KafkaConnector");
+
+        //We need to create the XML using a namespace so that the XML is read properly.
+        //Also we need to take browser independence into account.
+        var componentNode = cordys.createElementNS(configXmlDocument, namespace, "component");
+        componentNode.setAttribute("name",connectorName);
+        cordys.appendXMLNode(componentNode, configurationNode);
+        createElementWithParentNS(componentNode, "Host", input_host.value);
+        createElementWithParentNS(componentNode, "Port", input_port.value);
+        createElementWithParentNS(componentNode, "ConfigPath", input_configpath.value);
+        return true;
+    }
+
+    /**
+     * This method reads the XML configuration and fills the UI with the proper data.
+     */
+    function fillInPropertyScreen(configurationNode) {
+        //Initialize the namespace mapping		
+        var namespaces = new Array();
+        namespaces["ns"] = namespace;
+
+        var componentNode = cordys.selectXMLNode(configurationNode, "//ns:component", namespaces);
+        if (componentNode == null) {
+            return;
+        }
+
+        var host = cordys.getNodeText(componentNode, "ns:Host", "", namespaces);
+        if (host)
+            input_host.value = host;
+
+        var port = cordys.getNodeText(componentNode, "ns:Port", "", namespaces);
+        if (port)
+            input_port.value = port;
+
+        var configPath = cordys.getNodeText(componentNode, "ns:ConfigPath", "", namespaces);
+        if (configPath)
+            input_configpath.value = configPath;
+    }
+
+    /**
+     * This method creates a new XML element using the namespace of the parent node.
+     *
+     * @param parent The parent XML node.
+     * @param name   The name of the new element.
+     * @param value  The value for the text element.
+     *
+     * @return The created element.
+     */
+    function createElementWithParentNS(parent, name, value) {
+
+        var returnValue = null;
+
+        if (!(parent == null || typeof (parent.ownerDocument) == "undefined")) {
+            var doc = parent.ownerDocument;
+            var namespace = parent.namespaceURI;
+
+            returnValue = cordys.createElementNS(doc, namespace, name);
+            cordys.appendXMLNode(returnValue, parent);
+
+            if (value != null) {
+                cordys.setTextContent(returnValue, value);
+            }
+        }
+
+        return returnValue;
+    }  
+</script>
+
+<body>
+    <table class="mainbody" width="100%" border="0" cellspacing="0" cellpadding="5">
+        <tr>
+            <td align="left" colspan="2">
+                <fieldset style="width:100%">
+                    <legend style="color:black">Kafka Connector Details</legend>
+                    <br>
+                    <table border="0" width="100%">
+                        <tr>
+						
+						<td width="40%" align="left">XMLStore Configuration File Path : <span style="float:right">KafkaConnector/</span></td>
+                            
+                            <td align="left">
+                                <input type="text" style="width:350px" id="input_configpath" class="input" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="20%" align="left">Host</td>
+                            <td align="left">
+                                <input type="text" style="width:350px" id="input_host" class="input" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td width="20%" align="left">Port</td>
+                            <td align="left">
+                                <input type="text" style="width:350px" id="input_port" class="input" />
+                            </td>
+                        </tr>
+                    </table>
+                </fieldset>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
